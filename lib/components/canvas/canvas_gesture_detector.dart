@@ -573,7 +573,10 @@ class CanvasGestureDetectorState extends State<CanvasGestureDetector> {
                         pageBuilder: widget.pageBuilder,
                         placeholderPageBuilder: widget.placeholderPageBuilder,
                         boundingBox: _axisAlignedBoundingBox(viewport),
-                        containerWidth: containerBounds.maxWidth,
+                        // When rotated 90°/270°, RotatedBox swaps dimensions
+                        containerWidth: (viewRotation % 2 == 0)
+                            ? containerBounds.maxWidth
+                            : containerBounds.maxHeight,
                       );
                     },
                   ),
