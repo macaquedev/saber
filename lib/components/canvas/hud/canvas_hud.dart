@@ -18,6 +18,8 @@ class CanvasHud extends StatefulWidget {
     required this.setSingleFingerPanLock,
     required this.axisAlignedPanLock,
     required this.setAxisAlignedPanLock,
+    required this.viewRotation,
+    required this.rotateView,
   });
 
   final TransformationController transformationController;
@@ -28,6 +30,8 @@ class CanvasHud extends StatefulWidget {
   final ValueChanged<bool> setSingleFingerPanLock;
   final bool axisAlignedPanLock;
   final ValueChanged<bool> setAxisAlignedPanLock;
+  final int viewRotation;
+  final VoidCallback rotateView;
 
   @override
   State<CanvasHud> createState() => _CanvasHudState();
@@ -100,6 +104,20 @@ class _CanvasHudState extends State<CanvasHud> {
                   duration: const Duration(milliseconds: 200),
                   turns: widget.axisAlignedPanLock ? 0 : 1 / 8,
                   child: const Icon(Symbols.drag_pan),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 125,
+              left: 5,
+              child: CanvasGestureLockBtn(
+                lock: widget.viewRotation != 0,
+                setLock: (_) => widget.rotateView(),
+                tooltip: t.editor.hud.rotateView,
+                child: AnimatedRotation(
+                  duration: const Duration(milliseconds: 200),
+                  turns: widget.viewRotation / 4,
+                  child: const Icon(Symbols.rotate_right),
                 ),
               ),
             ),

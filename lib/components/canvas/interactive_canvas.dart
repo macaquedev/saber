@@ -46,6 +46,7 @@ class InteractiveCanvasViewer extends StatefulWidget {
     this.transformationController,
     this.alignment,
     this.trackpadScrollCausesScale = false,
+    this.viewRotation = 0,
     required Widget this.child,
   }) : assert(minScale > 0),
        assert(interactionEndFrictionCoefficient > 0),
@@ -93,6 +94,7 @@ class InteractiveCanvasViewer extends StatefulWidget {
     this.transformationController,
     this.alignment,
     this.trackpadScrollCausesScale = false,
+    this.viewRotation = 0,
     required InteractiveCanvasViewerWidgetBuilder this.builder,
   }) : assert(minScale > 0),
        assert(interactionEndFrictionCoefficient > 0),
@@ -357,6 +359,10 @@ class InteractiveCanvasViewer extends StatefulWidget {
   ///  * [TextEditingController] for an example of another similar pattern.
   final TransformationController? transformationController;
 
+  /// View rotation in quarter turns (0, 1, 2, 3).
+  /// Used to rotate velocity vectors for correct inertia when the view is rotated.
+  final int viewRotation;
+
   // Used as the coefficient of friction in the inertial translation animation.
   // This value was eyeballed to give a feel similar to Google Photos.
   static const double kDrag = 0.0000135;
@@ -501,6 +507,18 @@ class _InteractiveCanvasViewerState extends State<InteractiveCanvasViewer>
   // hardcoded value when the rotation feature is implemented.
   // https://github.com/flutter/flutter/issues/57698
   final bool _rotateEnabled = false;
+
+  /// Rotates an offset by the inverse of the view rotation to compensate
+  /// for the RotatedBox wrapper. This ensures velocity/scroll vectors
+  /// are in the correct coordinate system for the canvas.
+  Offset _rotateOffset(Offset offset) {
+    return switch (widget.viewRotation % 4) {
+      1 => Offset(offset.dy, -offset.dx), // 90° CCW view -> rotate 90° CW
+      2 => Offset(-offset.dx, -offset.dy), // 180° view -> rotate 180°
+      3 => Offset(-offset.dy, offset.dx), // 270° CCW view -> rotate 270° CW
+      _ => offset, // 0° -> no rotation
+    };
+  }
 
   // The _boundaryRect is calculated by adding the boundaryMargin to the size of
   // the child.
@@ -874,15 +892,17 @@ class _InteractiveCanvasViewerState extends State<InteractiveCanvasViewer>
           translationVector.x,
           translationVector.y,
         );
+        // Rotate velocity to compensate for view rotation
+        final rotatedVelocity = _rotateOffset(details.velocity.pixelsPerSecond);
         final FrictionSimulation frictionSimulationX = FrictionSimulation(
           widget.interactionEndFrictionCoefficient,
           translation.dx,
-          details.velocity.pixelsPerSecond.dx,
+          rotatedVelocity.dx,
         );
         final FrictionSimulation frictionSimulationY = FrictionSimulation(
           widget.interactionEndFrictionCoefficient,
           translation.dy,
-          details.velocity.pixelsPerSecond.dy,
+          rotatedVelocity.dy,
         );
         final double tFinal = _getFinalTime(
           details.velocity.pixelsPerSecond.distance,
@@ -948,9 +968,11 @@ class _InteractiveCanvasViewerState extends State<InteractiveCanvasViewer>
         // Scroll without Ctrl pressed, so treat it as a pan.
         if (!_gestureIsSupported(_GestureType.pan)) return;
 
+        // Rotate scroll delta to compensate for view rotation
+        final rotatedScrollDelta = _rotateOffset(event.scrollDelta);
         final Offset localDelta = PointerEvent.transformDeltaViaPositions(
-          untransformedEndPosition: global + event.scrollDelta,
-          untransformedDelta: event.scrollDelta,
+          untransformedEndPosition: global + rotatedScrollDelta,
+          untransformedDelta: rotatedScrollDelta,
           transform: event.transform,
         );
 

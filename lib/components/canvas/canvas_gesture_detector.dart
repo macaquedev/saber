@@ -162,6 +162,15 @@ class CanvasGestureDetectorState extends State<CanvasGestureDetector> {
   /// Otherwise, panning can be done in any (i.e. diagonal) direction.
   late bool axisAlignedPanLock = stows.lastAxisAlignedPanLock.value;
 
+  /// View rotation in quarter turns (0, 1, 2, 3 = 0°, 90°, 180°, 270°).
+  int viewRotation = 0;
+
+  void rotateView() {
+    setState(() {
+      viewRotation = (viewRotation + 1) % 4;
+    });
+  }
+
   void zoomIn() => widget._transformationController.value =
       setZoom(
         scaleDelta: 0.1,
@@ -531,39 +540,43 @@ class CanvasGestureDetectorState extends State<CanvasGestureDetector> {
               builder: (BuildContext context, BoxConstraints containerBounds) {
                 this.containerBounds = containerBounds;
 
-                return InteractiveCanvasViewer.builder(
-                  minScale: zoomLockedValue ?? CanvasGestureDetector.kMinScale,
-                  maxScale: zoomLockedValue ?? CanvasGestureDetector.kMaxScale,
-                  panEnabled: !singleFingerPanLock,
-                  panAxis: axisAlignedPanLock ? PanAxis.aligned : PanAxis.free,
+                return RotatedBox(
+                  quarterTurns: viewRotation,
+                  child: InteractiveCanvasViewer.builder(
+                    minScale: zoomLockedValue ?? CanvasGestureDetector.kMinScale,
+                    maxScale: zoomLockedValue ?? CanvasGestureDetector.kMaxScale,
+                    panEnabled: !singleFingerPanLock,
+                    panAxis: axisAlignedPanLock ? PanAxis.aligned : PanAxis.free,
+                    viewRotation: viewRotation,
 
-                  interactionEndFrictionCoefficient:
-                      InteractiveCanvasViewer.kDrag * 100,
+                    interactionEndFrictionCoefficient:
+                        InteractiveCanvasViewer.kDrag * 100,
 
-                  // we need a non-zero boundary margin so we can zoom out
-                  // past the size of the page (for minScale < 1)
-                  boundaryMargin: .symmetric(
-                    vertical: 0,
-                    horizontal: screenSize.width * 2,
+                    // we need a non-zero boundary margin so we can zoom out
+                    // past the size of the page (for minScale < 1)
+                    boundaryMargin: .symmetric(
+                      vertical: 0,
+                      horizontal: screenSize.width * 2,
+                    ),
+
+                    transformationController: widget._transformationController,
+
+                    isDrawGesture: widget.isDrawGesture,
+                    onInteractionEnd: widget.onInteractionEnd,
+                    onDrawStart: widget.onDrawStart,
+                    onDrawUpdate: widget.onDrawUpdate,
+                    onDrawEnd: widget.onDrawEnd,
+
+                    builder: (BuildContext context, Quad viewport) {
+                      return _PagesBuilder(
+                        pages: widget.pages,
+                        pageBuilder: widget.pageBuilder,
+                        placeholderPageBuilder: widget.placeholderPageBuilder,
+                        boundingBox: _axisAlignedBoundingBox(viewport),
+                        containerWidth: containerBounds.maxWidth,
+                      );
+                    },
                   ),
-
-                  transformationController: widget._transformationController,
-
-                  isDrawGesture: widget.isDrawGesture,
-                  onInteractionEnd: widget.onInteractionEnd,
-                  onDrawStart: widget.onDrawStart,
-                  onDrawUpdate: widget.onDrawUpdate,
-                  onDrawEnd: widget.onDrawEnd,
-
-                  builder: (BuildContext context, Quad viewport) {
-                    return _PagesBuilder(
-                      pages: widget.pages,
-                      pageBuilder: widget.pageBuilder,
-                      placeholderPageBuilder: widget.placeholderPageBuilder,
-                      boundingBox: _axisAlignedBoundingBox(viewport),
-                      containerWidth: containerBounds.maxWidth,
-                    );
-                  },
                 );
               },
             ),
@@ -590,6 +603,8 @@ class CanvasGestureDetectorState extends State<CanvasGestureDetector> {
               this.axisAlignedPanLock = axisAlignedPanLock;
               stows.lastAxisAlignedPanLock.value = axisAlignedPanLock;
             }),
+            viewRotation: viewRotation,
+            rotateView: rotateView,
           ),
         ),
       ],

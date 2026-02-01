@@ -356,6 +356,7 @@ editor:
     lockSingleFingerPan: Disable single-finger panning
     unlockAxisAlignedPan: Unlock panning to horizontal or vertical
     lockAxisAlignedPan: Lock panning to horizontal or vertical
+    rotateView: Rotate view
   pages: Pages
   untitled: Untitled
   needsToSaveBeforeExiting: Saving your changes... You can safely exit the editor when it's done

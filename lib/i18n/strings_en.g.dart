@@ -1317,6 +1317,9 @@ class TranslationsEditorHudEn {
 
 	/// en: 'Lock panning to horizontal or vertical'
 	String get lockAxisAlignedPan => 'Lock panning to horizontal or vertical';
+
+	/// en: 'Rotate view'
+	String get rotateView => 'Rotate view';
 }
 
 // Path: sentry.consent.description
