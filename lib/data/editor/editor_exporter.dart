@@ -37,17 +37,18 @@ abstract class EditorExporter {
     final pdf = pw.Document();
     final screenshotController = ScreenshotController();
 
-    // screenshot each page
-    final pageScreenshots = await Future.wait(
-      List.generate(
-        coreInfo.pages.length,
-        (pageIndex) => screenshotPage(
-          coreInfo: coreInfo,
-          pageIndex: pageIndex,
-          screenshotController: screenshotController,
-        ),
-      ),
-    );
+    // Screenshot each page sequentially to avoid overwhelming the
+    // PDF rendering pipeline. PdfPageView.render() is async and runs
+    // on a single native thread — concurrent captures cause later pages
+    // to miss captureFromWidget's retry window, resulting in blank backgrounds.
+    final pageScreenshots = <Uint8List>[];
+    for (var pageIndex = 0; pageIndex < coreInfo.pages.length; pageIndex++) {
+      pageScreenshots.add(await screenshotPage(
+        coreInfo: coreInfo,
+        pageIndex: pageIndex,
+        screenshotController: screenshotController,
+      ));
+    }
 
     for (int pageIndex = 0; pageIndex < pageScreenshots.length; ++pageIndex) {
       final page = coreInfo.pages[pageIndex];

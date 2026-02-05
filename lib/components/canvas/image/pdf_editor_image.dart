@@ -129,7 +129,7 @@ class PdfEditorImage extends EditorImage {
       pdfFile?.path ?? 'inline_pdf_$id.pdf',
       pdfBytes: pdfBytes,
     );
-    await _pdfDocument.value!.pages[pdfPage + 1].ensureLoaded();
+    await _pdfDocument.value!.pages[pdfPage].ensureLoaded();
   }
 
   @override
