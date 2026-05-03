@@ -105,12 +105,12 @@ class CanvasHud extends HookWidget {
               top: 125,
               left: 5,
               child: CanvasGestureLockBtn(
-                lock: widget.viewRotation != 0,
-                setLock: (_) => widget.rotateView(),
+                lock: viewRotation != 0,
+                setLock: (_) => rotateView(),
                 tooltip: t.editor.hud.rotateView,
                 child: AnimatedRotation(
                   duration: const Duration(milliseconds: 200),
-                  turns: widget.viewRotation / 4,
+                  turns: viewRotation / 4,
                   child: const Icon(Symbols.rotate_right),
                 ),
               ),
