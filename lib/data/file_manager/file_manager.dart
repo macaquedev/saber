@@ -330,7 +330,7 @@ class FileManager {
       }
     } else {
       // desktop, open save-as dialog
-      final outputFile = await FilePicker.platform.saveFile(
+      final outputFile = await FilePicker.saveFile(
         fileName: fileName,
         initialDirectory: (await getDownloadsDirectory())?.path,
         type: FileType.custom,
@@ -666,6 +666,10 @@ class FileManager {
 
   static Future<List<String>> getRecentlyAccessed() async {
     if (!stows.recentFiles.loaded) await stows.recentFiles.waitUntilRead();
+    // Delete entries for files that have been deleted outside of Saber
+    for (final file in stows.recentFiles.value.toList()) {
+      if (!doesFileExist(file)) _removeReferences(file);
+    }
     return stows.recentFiles.value
         .map((String filePath) {
           if (filePath.endsWith(Editor.extension)) {

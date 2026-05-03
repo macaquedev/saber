@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:logging/logging.dart';
 import 'package:saber/components/theming/adaptive_icon.dart';
-import 'package:saber/components/theming/font_fallbacks.dart';
 import 'package:saber/i18n/strings.g.dart';
+import 'package:sbn/font_fallbacks.dart';
 
 final logsHistory = _LogsHistory();
 
@@ -222,7 +222,7 @@ class _LogLevel extends StatelessWidget {
           Level.WARNING => colorScheme.tertiary,
           _ => colorScheme.surfaceContainer,
         },
-        borderRadius: .circular(2),
+        borderRadius: const .all(.circular(2)),
       ),
       child: Text(
         level.name,

@@ -2,6 +2,9 @@ part of 'editor_image.dart';
 
 class PdfEditorImage extends EditorImage {
   Uint8List? pdfBytes;
+
+  /// The index of the relevant page in the [_pdfDocument].
+  /// The first page is 0.
   final int pdfPage;
 
   /// If the pdf needs to be loaded from disk, this is the File
@@ -172,6 +175,7 @@ class PdfEditorImage extends EditorImage {
           invert: invert,
           child: PdfPageView(
             document: pdfDocument,
+            // [PdfPageView.pageNumber] starts at 1 not 0
             pageNumber: pdfPage + 1,
             decoration: const BoxDecoration(),
           ),

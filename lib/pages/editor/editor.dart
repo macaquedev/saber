@@ -30,7 +30,6 @@ import 'package:saber/components/toolbar/color_bar.dart';
 import 'package:saber/components/toolbar/editor_bottom_sheet.dart';
 import 'package:saber/components/toolbar/editor_page_manager.dart';
 import 'package:saber/components/toolbar/toolbar.dart';
-import 'package:saber/data/editor/_color_change.dart';
 import 'package:saber/data/editor/editor_core_info.dart';
 import 'package:saber/data/editor/editor_exporter.dart';
 import 'package:saber/data/editor/editor_history.dart';
@@ -50,6 +49,7 @@ import 'package:saber/data/tools/select.dart';
 import 'package:saber/data/tools/shape_pen.dart';
 import 'package:saber/i18n/strings.g.dart';
 import 'package:saber/pages/home/whiteboard.dart';
+import 'package:sbn/change.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 
@@ -434,10 +434,14 @@ class EditorState extends State<Editor> {
         case .quillUndoneChange:
           final quill = coreInfo.pages[item.pageIndex].quill;
           quill.controller.redo();
+
         case .changeColor:
           for (final stroke in item.strokes) {
             stroke.color = item.colorChange![stroke]!.previous;
           }
+
+        case .backgroundPattern:
+          coreInfo.backgroundPattern = item.backgroundPatternChange!.previous;
       }
 
       if (item.type != .move) {
@@ -480,8 +484,14 @@ class EditorState extends State<Editor> {
         undo(
           item.copyWith(
             colorChange: item.colorChange!.map(
-              (key, value) => MapEntry(key, value.swap()),
+              (key, value) => MapEntry(key, value.reverse()),
             ),
+          ),
+        );
+      case .backgroundPattern:
+        undo(
+          item.copyWith(
+            backgroundPatternChange: item.backgroundPatternChange!.reverse(),
           ),
         );
     }
@@ -974,8 +984,8 @@ class EditorState extends State<Editor> {
       ]);
       savingState.value = .saved;
       history.markLastChangeAsSaved();
-    } catch (e) {
-      log.severe('Failed to save file: $e', e);
+    } catch (e, st) {
+      log.severe('Failed to save file: $e', e, st);
       savingState.value = .waitingToSave;
       if (kDebugMode) rethrow;
       return;
@@ -1157,7 +1167,7 @@ class EditorState extends State<Editor> {
   }
 
   Future<List<_PhotoInfo>> _pickPhotosWithFilePicker() async {
-    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+    final FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
       // Taken from
       // https://github.com/brendan-duncan/image/blob/main/doc/formats.md
@@ -1195,7 +1205,7 @@ class EditorState extends State<Editor> {
     if (coreInfo.readOnly) return false;
     if (!Editor.canRasterPdf) return false;
 
-    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+    final FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
       allowMultiple: false,
@@ -1335,6 +1345,40 @@ class EditorState extends State<Editor> {
       sba,
       context: context,
     );
+  }
+
+  /// Exports the current page as a PNG image file.
+  ///
+  /// This captures the canvas natively via [EditorExporter.screenshotPage],
+  /// which guarantees the correct background color and omits UI elements
+  /// like selection bounds or the text cursor. It computes a dynamic [pixelRatio]
+  /// to ensure high quality while averting Out-Of-Memory exceptions on large canvases.
+  Future exportAsPng(BuildContext context) async {
+    final page = coreInfo.pages[currentPageIndex];
+
+    const maxRasterizableSize = 3000.0;
+    var targetPixelRatio = maxRasterizableSize / page.size.longestSide;
+    if (targetPixelRatio > 1) targetPixelRatio = 1;
+
+    try {
+      final Uint8List pngBytes = await EditorExporter.screenshotPage(
+        coreInfo: coreInfo,
+        pageIndex: currentPageIndex,
+        screenshotController: ScreenshotController(),
+        rasterizeAllStrokes: true,
+        pixelRatio: targetPixelRatio,
+      );
+
+      if (!context.mounted) return;
+      await FileManager.exportFile(
+        '${coreInfo.fileName}_page_${currentPageIndex + 1}.png',
+        pngBytes,
+        isImage: true,
+        context: context,
+      );
+    } catch (e, st) {
+      log.severe('Failed to export PNG', e, st);
+    }
   }
 
   @override
@@ -1516,9 +1560,9 @@ class EditorState extends State<Editor> {
                 if (select.doneSelecting) {
                   final strokes = select.selectResult.strokes;
 
-                  final colorChange = <Stroke, ColorChange>{};
+                  final colorChange = <Stroke, Change<Color>>{};
                   for (final stroke in strokes) {
-                    colorChange[stroke] = ColorChange(
+                    colorChange[stroke] = Change(
                       previous: stroke.color,
                       current: color,
                     );
@@ -1569,7 +1613,7 @@ class EditorState extends State<Editor> {
           paste: paste,
           exportAsSba: exportAsSba,
           exportAsPdf: exportAsPdf,
-          exportAsPng: null,
+          exportAsPng: exportAsPng,
         ),
       ),
     );
@@ -1739,8 +1783,21 @@ class EditorState extends State<Editor> {
       currentPageIndex: currentPageIndex,
       setBackgroundPattern: (pattern) => setState(() {
         if (coreInfo.readOnly) return;
+        final previous = coreInfo.backgroundPattern;
         coreInfo.backgroundPattern = pattern;
         stows.lastBackgroundPattern.value = pattern;
+        history.recordChange(
+          EditorHistoryItem(
+            type: .backgroundPattern,
+            pageIndex: currentPageIndex,
+            backgroundPatternChange: Change(
+              previous: previous,
+              current: pattern,
+            ),
+            strokes: [],
+            images: [],
+          ),
+        );
         autosaveAfterDelay();
       }),
       setLineHeight: (lineHeight) => setState(() {

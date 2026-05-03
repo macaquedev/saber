@@ -8,6 +8,7 @@ import 'package:saber/data/tools/_tool.dart';
 import 'package:saber/data/tools/highlighter.dart';
 import 'package:saber/data/tools/pencil.dart';
 import 'package:saber/i18n/strings.g.dart';
+import 'package:sbn/tool_id.dart';
 
 class Pen extends Tool {
   @protected
@@ -50,13 +51,13 @@ class Pen extends Tool {
   final double sizeMin, sizeMax, sizeStep;
   late final int sizeStepsBetweenMinAndMax = ((sizeMax - sizeMin) / sizeStep)
       .round();
-  final IconData icon;
+  final Object icon;
 
   @override
   final ToolId toolId;
 
-  static const IconData fountainPenIcon = FontAwesomeIcons.penFancy;
-  static const IconData ballpointPenIcon = FontAwesomeIcons.pen;
+  static const fountainPenIcon = FontAwesomeIcons.penFancy;
+  static const ballpointPenIcon = FontAwesomeIcons.pen;
 
   static Stroke? currentStroke;
   Color color;

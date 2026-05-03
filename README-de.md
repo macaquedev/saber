@@ -29,7 +29,8 @@
 [Deutsch](https://github.com/saber-notes/saber/blob/main/README-de.md) |
 [中文 (简体中文, 中国)](https://github.com/saber-notes/saber/blob/main/README-zh-CN.md) |
 [中文 (繁體, 台灣)](https://github.com/saber-notes/saber/blob/main/README-zh-TW.md) |
-[العربية](https://github.com/saber-notes/saber/blob/main/README-ar.md) 
+[العربية](https://github.com/saber-notes/saber/blob/main/README-ar.md) |
+[Tiếng Việt](https://github.com/saber-notes/saber/blob/main/README-vi.md)
 
 Als der Entwickler von Saber freue ich mich dir eine App vorzustellen, die deine Art Notizen zu erstellen revolutionieren soll. Saber ist die ultimative handschriftliche Notizen-App, designt um deine Erfahrung beim Erstellen von Notizen zu verbessern! Erfreue dich an der Kunst der Handschrift und lasse mit dieser funktionsreichen, von modernen Technologien unterstützten App deiner Kreativität freien Lauf. Sabers intuitives und modernes Interface macht es spielend leicht Notizen niederzuschreiben, Diagramme zu zeichnen oder PDFs zu kommentieren.
 
@@ -93,9 +94,11 @@ an (derzeit nur in Englisch verfügbar).
 
 ## Übersetzungen
 
-Bitte schaue dir
-[Translating](https://github.com/saber-notes/saber/wiki/Translating)
-an (derzeit nur in Englisch verfügbar).
+Alle Übersetzungen stammen von unserer Community.
+
+Wenn du bei der Übersetzung von Saber mithelfen möchtest, besuche [Weblate](https://hosted.weblate.org/engage/saber-notes/)!
+
+[![Übersetzungsstatus](https://hosted.weblate.org/widget/saber-notes/multi-auto.svg)](https://hosted.weblate.org/engage/saber-notes/)
 
 ## Saber unterstützen
 
@@ -118,8 +121,8 @@ an (derzeit nur in Englisch verfügbar).
 [google_play]: https://play.google.com/store/apps/details?id=com.adilhanney.saber
 [snap]: https://snapcraft.io/saber
 [app_store]: https://apps.apple.com/us/app/saber/id1671523739
-[download_windows]: https://github.com/saber-notes/saber/releases/download/v1.29.5/SaberInstaller_v1.29.5.exe
-[download_appimage]: https://github.com/saber-notes/saber/releases/download/v1.29.5/Saber-1.29.5-x86_64.AppImage
+[download_windows]: https://github.com/saber-notes/saber/releases/download/v1.33.2/SaberInstaller_v1.33.2.exe
+[download_appimage]: https://github.com/saber-notes/saber/releases/download/v1.33.2/Saber-1.33.2-x86_64.AppImage
 
 [nextcloud]: https://nc.saber.adil.hanney.org/
 

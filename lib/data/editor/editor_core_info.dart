@@ -19,6 +19,7 @@ import 'package:saber/data/prefs.dart';
 import 'package:saber/data/tools/stroke_properties.dart';
 import 'package:saber/pages/editor/editor.dart';
 import 'package:sbn/canvas_background_pattern.dart';
+import 'package:sbn/has_size.dart';
 import 'package:sbn/read_only_reason.dart';
 import 'package:worker_manager/worker_manager.dart';
 
@@ -411,8 +412,8 @@ class EditorCoreInfo {
         // if the file is small, just run it on the main thread
         coreInfo = isolate();
       }
-    } catch (e) {
-      log.severe('Failed to load file: $e', e);
+    } catch (e, st) {
+      log.severe('Failed to load file: $e', e, st);
       if (kDebugMode) {
         rethrow;
       } else {
@@ -439,8 +440,8 @@ class EditorCoreInfo {
       } else {
         throw ArgumentError('Both bsonBytes and jsonString are null');
       }
-    } catch (e) {
-      log.severe('Failed to parse file: $e', e);
+    } catch (e, st) {
+      log.severe('Failed to parse file: $e', e, st);
       rethrow;
     }
 
