@@ -489,8 +489,7 @@ class CanvasGestureDetectorState extends State<CanvasGestureDetector> {
   /// Note: Physical button presses are handled separately for select tool.
   void _checkStylusEraser(PointerDeviceKind kind, int buttons) {
     final isEraser =
-        kind == PointerDeviceKind.invertedStylus ||
-        StylusEraserLinux.isEraser;
+        kind == PointerDeviceKind.invertedStylus || StylusEraserLinux.isEraser;
     if (stylusButtonWasPressed != isEraser) {
       stylusButtonWasPressed = isEraser;
       widget.onStylusButtonChanged(isEraser);
@@ -547,10 +546,14 @@ class CanvasGestureDetectorState extends State<CanvasGestureDetector> {
                 return RotatedBox(
                   quarterTurns: viewRotation,
                   child: InteractiveCanvasViewer.builder(
-                    minScale: zoomLockedValue ?? CanvasGestureDetector.kMinScale,
-                    maxScale: zoomLockedValue ?? CanvasGestureDetector.kMaxScale,
+                    minScale:
+                        zoomLockedValue ?? CanvasGestureDetector.kMinScale,
+                    maxScale:
+                        zoomLockedValue ?? CanvasGestureDetector.kMaxScale,
                     panEnabled: !singleFingerPanLock,
-                    panAxis: axisAlignedPanLock ? PanAxis.aligned : PanAxis.free,
+                    panAxis: axisAlignedPanLock
+                        ? PanAxis.aligned
+                        : PanAxis.free,
                     viewRotation: viewRotation,
 
                     // Smoother scrolling fling gesture than the default
