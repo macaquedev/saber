@@ -11,8 +11,15 @@ include: package:flutter_lints/flutter.yaml
 
 analyzer:
   exclude:
+    - android/**
+    - build/**
+    - ios/**
+    - lib/i18n/*.g.dart
+    - linux/**
+    - macos/**
     - submodules/**
-    - lib/i18n/strings.g.dart
+    - web/**
+    - windows/**
 
 linter:
   # The lint rules applied to this project can be customized in the
@@ -65,8 +72,6 @@ linter:
     use_decorated_box: true
 
     use_enums: true
-
-    use_if_null_to_convert_nulls_to_bools: true
 
     use_is_even_rather_than_modulo: true
 

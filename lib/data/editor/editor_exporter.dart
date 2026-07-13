@@ -1,15 +1,20 @@
-import 'dart:typed_data';
+import 'dart:async';
+import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:image/image.dart' as im;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:pool/pool.dart';
 import 'package:saber/components/canvas/_circle_stroke.dart';
 import 'package:saber/components/canvas/_rectangle_stroke.dart';
 import 'package:saber/components/canvas/_stroke.dart';
 import 'package:saber/components/canvas/canvas_preview.dart';
 import 'package:saber/components/canvas/inner_canvas.dart';
 import 'package:saber/data/editor/editor_core_info.dart';
+import 'package:saber/data/is_this_a_test.dart';
 import 'package:screenshot/screenshot.dart';
 
 abstract class EditorExporter {
@@ -35,20 +40,35 @@ abstract class EditorExporter {
     }
 
     final pdf = pw.Document();
-    final screenshotController = ScreenshotController();
 
-    // Screenshot each page sequentially to avoid overwhelming the
-    // PDF rendering pipeline. PdfPageView.render() is async and runs
-    // on a single native thread — concurrent captures cause later pages
-    // to miss captureFromWidget's retry window, resulting in blank backgrounds.
-    final pageScreenshots = <Uint8List>[];
-    for (var pageIndex = 0; pageIndex < coreInfo.pages.length; pageIndex++) {
-      pageScreenshots.add(await screenshotPage(
-        coreInfo: coreInfo,
-        pageIndex: pageIndex,
-        screenshotController: screenshotController,
-      ));
-    }
+    // screenshot each page
+    final pool = Pool((Platform.numberOfProcessors ~/ 2).clamp(1, 4));
+    final pageScreenshots = await Future.wait(
+      List.generate(
+        coreInfo.pages.length,
+        (pageIndex) => pool.withResource(() async {
+          final uiImage = await screenshotPage(
+            coreInfo: coreInfo,
+            pageIndex: pageIndex,
+          );
+          final byteData = await uiImage.toByteData(
+            format: ui.ImageByteFormat.rawRgba,
+          );
+          assert(
+            byteData != null,
+            'Judging by the code, this should never be null.',
+          );
+          final imImage = im.Image.fromBytes(
+            width: uiImage.width,
+            height: uiImage.height,
+            bytes: byteData!.buffer,
+            order: im.ChannelOrder.rgba,
+          );
+          uiImage.dispose();
+          return imImage;
+        }),
+      ),
+    );
 
     for (int pageIndex = 0; pageIndex < pageScreenshots.length; ++pageIndex) {
       final page = coreInfo.pages[pageIndex];
@@ -115,7 +135,7 @@ abstract class EditorExporter {
                   }
                 },
                 child: pw.Image(
-                  pw.MemoryImage(pageScreenshots[pageIndex]),
+                  pw.ImageImage(pageScreenshots[pageIndex]),
                   width: pageSize.width,
                   height: pageSize.height,
                 ),
@@ -135,10 +155,11 @@ abstract class EditorExporter {
   /// because they're added separately to the PDF as vector graphics.
   /// See [shouldRasterizeStroke] for more details, or set
   /// [rasterizeAllStrokes] to true to include all strokes in the screenshot.
-  static Future<Uint8List> screenshotPage({
+  ///
+  /// You must dispose this image when you're done.
+  static Future<ui.Image> screenshotPage({
     required EditorCoreInfo coreInfo,
     required int pageIndex,
-    required ScreenshotController screenshotController,
     bool rasterizeAllStrokes = false,
     Size? targetSize,
     double? cropHeight,
@@ -147,15 +168,21 @@ abstract class EditorExporter {
     final page = coreInfo.pages[pageIndex].cloneForRasterization(
       rasterizeAllStrokes: rasterizeAllStrokes,
     );
+
+    final imagesToLoad = [
+      ?page.backgroundImage,
+      ...page.images,
+    ].where((image) => !image.loadedIn).toList(growable: false);
+    await Future.wait(
+      imagesToLoad.map((image) => image.loadIn()),
+    ).timeout(const Duration(seconds: 10), onTimeout: () => const []);
+
     try {
       targetSize ??= page.size;
       coreInfo = coreInfo.copyWith(
-        pages: [
-          for (var i = 0; i < coreInfo.pages.length; ++i)
-            if (i == pageIndex) page else coreInfo.pages[i],
-        ],
+        pages: [for (var i = 0; i < coreInfo.pages.length; ++i) page],
       );
-      return await screenshotController.captureFromWidget(
+      return await ScreenshotController.widgetToUiImage(
         EditorExporterTheme(
           targetSize: targetSize,
           child: CanvasPreview(
@@ -166,8 +193,10 @@ abstract class EditorExporter {
         ),
         pixelRatio: pixelRatio,
         targetSize: targetSize,
+        delay: isThisATest ? .zero : const Duration(milliseconds: 200),
       );
     } finally {
+      for (final image in imagesToLoad) unawaited(image.loadOut());
       page.disposeClonedData();
     }
   }

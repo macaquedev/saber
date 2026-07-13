@@ -69,6 +69,16 @@ home:
     deleteName: מחיקת $f
     delete: מחיקה
     alsoDeleteContents: מחיקה גם של כל הפתקים בתיקייה זו
+  sort:
+    sortBy(OUTDATED): ממוין לפי
+    nameAToZ(OUTDATED): שם (א-ת)
+    nameZToA(OUTDATED): שם (א-ת)
+    lastModifiedNewToOld(OUTDATED): ערוך (החדשים ביותר תחילה)
+    lastModifiedOldToNew(OUTDATED): ערוך (הישנים ביותר תחילה)
+  layout:
+    layout(OUTDATED): פריסה
+    masonryGrid(OUTDATED): רשת אבן
+    simpleGrid(OUTDATED): רשת פשוטה
 sentry:
   consent:
     title: האם לעזור בשיפור Saber?
@@ -115,7 +125,6 @@ settings:
     autosave: שמירה אוטומטית
     shapeRecognitionDelay: השהיה לפני זיהוי צורות
     autoStraightenLines: יישור קווים אוטומטי
-    simplifiedHomeLayout: פריסת עמוד בית פשוטה
     customDataDir: תיקייה מותאמת אישית ל־Saber
     sentry: דיווח על שגיאות
   prefDescriptions:
@@ -135,7 +144,6 @@ settings:
     autosave: שמירה אוטומטית לאחר פרק זמן קצר, או אף פעם
     shapeRecognitionDelay: כל כמה זמן לעדכן את התצוגה המקדימה של הצורות
     autoStraightenLines: מיישר קווים ארוכים ללא צורך להשתמש בעט הצורות
-    simplifiedHomeLayout: קביעת גובה קבוע לתצוגה המקדימה של כל פתק
     shouldAlwaysAlertForUpdates: ספר לי על עדכונים ברגע שהם יהיו זמינים
     sentry:
       active: פעיל

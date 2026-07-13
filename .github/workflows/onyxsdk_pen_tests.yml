@@ -18,14 +18,18 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: "./.github/shared_workflows/install_apt_dependencies"
 
       - name: Setup Flutter
-        uses: adil192/setup-flutter-submodule@v1
+        uses: adil192/setup-flutter-submodule@v3
         with:
           flutter-path: submodules/flutter
+          # If we saved a cache here, it would be incomplete.
+          no-save-caches: true
 
       - name: Run tests
         working-directory: packages/onyxsdk_pen
