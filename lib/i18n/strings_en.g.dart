@@ -99,6 +99,9 @@ class Translations$home$en {
 	late final Translations$home$renameNote$en renameNote = Translations$home$renameNote$en.internal(_root);
 	late final Translations$home$moveNote$en moveNote = Translations$home$moveNote$en.internal(_root);
 
+	/// en: 'Duplicate note'
+	String get duplicateNote => 'Duplicate note';
+
 	/// en: 'Delete note'
 	String get deleteNote => 'Delete note';
 

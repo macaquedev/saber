@@ -49,6 +49,7 @@ home:
     renamedTo: Note will be renamed to $newName
     multipleRenamedTo: "The following notes will be renamed:"
     numberRenamedTo: $n notes will be renamed to avoid conflicts
+  duplicateNote: Duplicate note
   deleteNote: Delete note
   deleteNoteDialog:
     deleteNotes: Delete $n notes

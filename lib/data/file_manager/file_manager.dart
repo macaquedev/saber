@@ -444,6 +444,72 @@ class FileManager {
     return toPath;
   }
 
+  /// Copies the file at [fromPath] to [toPath], byte-for-byte,
+  /// including its assets and preview.
+  ///
+  /// [toPath] is suffixed if a file already exists there.
+  /// Returns the path the file was copied to.
+  static Future<String> copyFile(
+    String fromPath,
+    String toPath, {
+    bool alsoCopyAssets = true,
+  }) async {
+    fromPath = _sanitisePath(fromPath);
+    toPath = _sanitisePath(toPath);
+
+    if (!toPath.contains('/')) {
+      // if toPath is a relative path
+      toPath = fromPath.substring(0, fromPath.lastIndexOf('/') + 1) + toPath;
+    }
+
+    if (!assetFileRegex.hasMatch(toPath)) {
+      toPath = await suffixFilePathToMakeItUnique(toPath);
+    }
+
+    final fromFile = getFile(fromPath);
+    if (fromFile.existsSync()) {
+      await _createFileDirectory(toPath);
+      await fromFile.copy(getFile(toPath).path);
+    } else {
+      log.warning('Tried to copy non-existent file from $fromPath to $toPath');
+      return toPath;
+    }
+
+    await _saveFileAsRecentlyAccessed(toPath);
+    syncer.uploader.enqueueRel(toPath);
+    broadcastFileWrite(FileOperationType.write, toPath);
+
+    if (alsoCopyAssets && !assetFileRegex.hasMatch(fromPath)) {
+      final assets = <String>[];
+      for (int assetNumber = 0; true; assetNumber++) {
+        final assetFile = getFile('$fromPath.$assetNumber');
+        if (assetFile.existsSync()) {
+          assets.add('$assetNumber');
+        } else {
+          break;
+        }
+      }
+      {
+        const assetNumber = 'p';
+        final assetFile = getFile('$fromPath.$assetNumber');
+        if (assetFile.existsSync()) {
+          assets.add(assetNumber);
+        }
+      }
+
+      await Future.wait([
+        for (final assetNumber in assets)
+          copyFile(
+            '$fromPath.$assetNumber',
+            '$toPath.$assetNumber',
+            alsoCopyAssets: false,
+          ),
+      ]);
+    }
+
+    return toPath;
+  }
+
   static Future deleteFile(
     String filePath, {
     bool alsoUpload = true,

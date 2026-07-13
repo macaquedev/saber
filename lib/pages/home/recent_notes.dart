@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 import 'package:saber/components/home/delete_note_button.dart';
+import 'package:saber/components/home/duplicate_note_button.dart';
 import 'package:saber/components/home/export_note_button.dart';
 import 'package:saber/components/home/home_layout_button.dart';
 import 'package:saber/components/home/masonry_files.dart';
@@ -171,6 +172,10 @@ class _RecentPageState extends State<RecentPage> {
                       : selectedFiles.value.first,
                   unselectNotes: () => selectedFiles.value = [],
                 ),
+              ),
+              DuplicateNoteButton(
+                filesToDuplicate: selectedFiles.value,
+                unselectNotes: () => selectedFiles.value = [],
               ),
               MoveNoteButton(
                 filesToMove: selectedFiles.value,
